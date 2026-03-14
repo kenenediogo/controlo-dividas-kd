@@ -1,0 +1,11 @@
+=== RELATÓRIO DE DÍVIDAS E CRÉDITOS (KD) ===
+Gerado em: 14/03/2026, 18:21:45
+
+--- DÍVIDAS PENDENTES ---
+Data: 2026-02-21 | Pessoa: Maninho | Valor: 20 000,00 AKZ | Motivo: portas
+   (Falta pagar: 20 000,00 AKZ)
+Data: 2026-02-22 | Pessoa: Edilson | Valor: 30 000,00 AKZ | Motivo: canalização
+   (Falta pagar: 10 000,00 AKZ)
+
+--- HISTÓRICO DE CONCLUÍDOS ---
+Data: 2026-03-14 | Pessoa: Edilson | Valor: 20 000,00 AKZ | Motivo: Parcela de: canalização

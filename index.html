@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Financeiro KD</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --devo: #e74c3c;
+            --receber: #2ecc71;
+            --bg: #f4f7f6;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        /* Estilo do Título com Logo */
+        .header-app { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .logo-area { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 40px; } /* Ajusta aqui o tamanho */
+        .logo-area img { max-width: 100%; height: auto; border-radius: 8px; }
+
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .card { padding: 15px; border-radius: 8px; color: white; text-align: center; }
+        .card.devo { background: var(--devo); }
+        .card.receber { background: var(--receber); }
+        .card span { display: block; font-size: 1.2rem; font-weight: bold; }
+
+        .section { background: #eee; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; box-sizing: border-box; }
+        
+        button { cursor: pointer; border: none; border-radius: 5px; font-weight: bold; transition: 0.3s; }
+        .btn-add { background: var(--primary); color: white; padding: 12px; width: 100%; margin-top: 10px; }
+        .btn-pay { background: #3498db; color: white; padding: 5px 10px; }
+        .btn-del { background: #c0392b; color: white; padding: 5px 10px; }
+        .btn-export { background: #666; color: white; padding: 12px; width: 100%; margin-top: 10px; }
+
+        .table-wrap { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #f8f8f8; }
+
+        .tag-parcela { font-size: 0.7rem; background: #ddd; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
+
+        @media (max-width: 600px) {
+            .dashboard { grid-template-columns: 1fr; }
+            .grid-form { grid-template-columns: 1fr; }
+            .header-app { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="header-app">
+        <div class="logo-area" id="logoContainer">
+            <img src="logo-kd.png" alt="Logo KD"> 
+        </div>
+        <h2 style="margin: 0;">Gestão de Dívidas KD</h2>
+    </header>
+
+    <div class="section">
+        <strong>Relatório de:</strong>
+        <div class="grid-form">
+            <select id="filtroMes" onchange="atualizarInterface()">
+                <option value="todos">Ver Todos os Meses</option>
+                <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+                <option value="03" selected>Março</option><option value="04">Abril</option>
+                <option value="05">Maio</option><option value="06">Junho</option>
+                <option value="07">Julho</option><option value="08">Agosto</option>
+                <option value="09">Setembro</option><option value="10">Outubro</option>
+                <option value="11">Novembro</option><option value="12">Dezembro</option>
+            </select>
+            <input type="number" id="filtroAno" value="2026" onchange="atualizarInterface()">
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="card devo">Total a Pagar<span id="saldoDevo">0 AKZ</span></div>
+        <div class="card receber">Total a Receber<span id="saldoReceber">0 AKZ</span></div>
+    </div>
+
+    <div class="section">
+        <div class="grid-form">
+            <select id="tipo">
+                <option value="devo">Eu Devo</option>
+                <option value="receber">Devem-me</option>
+            </select>
+            <input type="text" id="pessoa" placeholder="Pessoa/Empresa">
+            <input type="number" id="valorTotal" placeholder="Valor (AKZ)">
+            <input type="text" id="motivo" placeholder="Motivo">
+            <input type="date" id="data">
+        </div>
+        <button class="btn-add" onclick="adicionarRegisto()">REGISTAR LANÇAMENTO</button>
+        <button class="btn-export" onclick="exportarParaTXT()">📥 EXPORTAR RELATÓRIO (.TXT)</button>
+    </div>
+
+    <h3>⏳ Pendentes</h3>
+    <div class="table-wrap">
+        <table id="tabelaPendentes">
+            <thead>
+                <tr>
+                    <th>Data Origem</th>
+                    <th>Pessoa</th>
+                    <th>Motivo</th>
+                    <th>Total</th>
+                    <th>Falta</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <h3>✅ Histórico</h3>
+    <div class="table-wrap">
+        <table id="tabelaPagas">
+            <thead>
+                <tr>
+                    <th>Pessoa</th>
+                    <th>Valor Pago</th>
+                    <th>Data do Movimento</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let finance_db = JSON.parse(localStorage.getItem('finance_kd_v4')) || [];
+
+    document.getElementById('data').valueAsDate = new Date();
+    document.getElementById('filtroMes').value = "todos"; 
+    document.getElementById('filtroAno').value = new Date().getFullYear();
+
+    function adicionarRegisto() {
+        const item = {
+            id: Date.now(),
+            tipo: document.getElementById('tipo').value,
+            pessoa: document.getElementById('pessoa').value,
+            valor: parseFloat(document.getElementById('valorTotal').value) || 0,
+            restante: parseFloat(document.getElementById('valorTotal').value) || 0,
+            data: document.getElementById('data').value,
+            motivo: document.getElementById('motivo').value,
+            concluido: false,
+            isParcela: false
+        };
+
+        if(!item.pessoa || item.valor <= 0 || !item.data) return alert("Preencha os campos!");
+
+        finance_db.push(item);
+        salvarEDesenhar();
+        limparCampos();
+    }
+
+    function realizarPagamento(id) {
+        const index = finance_db.findIndex(i => i.id === id);
+        const original = finance_db[index];
+        
+        let valorInput = prompt(`Valor a pagar/receber de ${original.pessoa}:\nFalta: ${original.restante} AKZ`);
+        if(valorInput === null || valorInput === "") return;
+        
+        let valorPago = parseFloat(valorInput);
+        if(isNaN(valorPago) || valorPago <= 0) return alert("Valor inválido!");
+
+        let dataP = prompt("Data (AAAA-MM-DD):", new Date().toISOString().split('T')[0]);
+        if(!dataP) return;
+
+        if(valorPago >= original.restante) {
+            original.restante = 0;
+            original.concluido = true;
+            original.data = dataP; 
+            original.isParcela = false;
+        } else {
+            const parcela = {
+                id: Date.now() + 1,
+                tipo: original.tipo,
+                pessoa: original.pessoa,
+                valor: valorPago,
+                data: dataP,
+                motivo: `Parcela de: ${original.motivo}`,
+                concluido: true,
+                isParcela: true
+            };
+            finance_db.push(parcela);
+            original.restante -= valorPago;
+        }
+        salvarEDesenhar();
+    }
+
+    function eliminar(id) {
+        if(confirm("Deseja apagar?")) {
+            finance_db = finance_db.filter(i => i.id !== id);
+            salvarEDesenhar();
+        }
+    }
+
+    function salvarEDesenhar() {
+        localStorage.setItem('finance_kd_v4', JSON.stringify(finance_db));
+        atualizarInterface();
+    }
+
+    function limparCampos() {
+        document.getElementById('pessoa').value = '';
+        document.getElementById('valorTotal').value = '';
+        document.getElementById('motivo').value = '';
+    }
+
+    function formatarKz(n) {
+        return n.toLocaleString('pt-AO', { minimumFractionDigits: 2 }) + " AKZ";
+    }
+
+    function exportarParaTXT() {
+        if (finance_db.length === 0) return alert("Sem dados!");
+        let t = "=== RELATÓRIO FINANCEIRO KD ===\n\n";
+        finance_db.forEach(i => {
+            t += `${i.data} | ${i.tipo.toUpperCase()} | ${i.pessoa} | ${formatarKz(i.valor)} | Motivo: ${i.motivo}\n`;
+        });
+        const blob = new Blob([t], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "relatorio_kd.txt";
+        a.click();
+    }
+
+    function atualizarInterface() {
+        const mesF = document.getElementById('filtroMes').value;
+        const anoF = document.getElementById('filtroAno').value;
+        const tPendentes = document.querySelector('#tabelaPendentes tbody');
+        const tPagas = document.querySelector('#tabelaPagas tbody');
+        
+        tPendentes.innerHTML = '';
+        tPagas.innerHTML = '';
+
+        let totalDevo = 0, totalReceber = 0;
+
+        finance_db.forEach(item => {
+            const [ano, mes, dia] = item.data.split('-');
+            if (mesF === "todos" || (mes === mesF && ano === String(anoF))) {
+                const tr = document.createElement('tr');
+                if(!item.concluido) {
+                    if(item.tipo === 'devo') totalDevo += item.restante; else totalReceber += item.restante;
+                    tr.innerHTML = `<td>${dia}/${mes}/${ano}</td><td>${item.pessoa}</td><td>${item.motivo}</td><td>${formatarKz(item.valor)}</td><td style="color:red;font-weight:bold">${formatarKz(item.restante)}</td><td><button class="btn-pay" onclick="realizarPagamento(${item.id})">Pagar</button><button class="btn-del" onclick="eliminar(${item.id})">×</button></td>`;
+                    tPendentes.appendChild(tr);
+                } else {
+                    tr.innerHTML = `<td>${item.pessoa} ${item.isParcela ? '<span class="tag-parcela">Parcela</span>' : ''}</td><td>${formatarKz(item.valor)}</td><td>${dia}/${mes}/${ano}</td><td><button class="btn-del" onclick="eliminar(${item.id})">×</button></td>`;
+                    tPagas.appendChild(tr);
+                }
+            }
+        });
+        document.getElementById('saldoDevo').innerText = formatarKz(totalDevo);
+        document.getElementById('saldoReceber').innerText = formatarKz(totalReceber);
+    }
+    atualizarInterface();
+</script>
+</body>
+</html>
