@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão Financeira KD</title>
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
     <style>
+
         :root {
-            --primary: #4a90e2;
-            --devo: #e74c3c;
-            --receber: #2ecc71;
-            --bg: #f4f7f6;
+        --primary: #4a90e2;
+        --devo: #e74c3c;
+        --receber: #2ecc71;
+        --bg: #f4f7f6;
         }
 
         body { 
@@ -27,7 +31,7 @@
             border-radius: 12px; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
         }
-        
+
         /* Estilo do Título com Logo */
         .header-app { 
             display: flex; 
@@ -45,6 +49,7 @@
             justify-content: center; 
             font-size: 40px; 
         } 
+
         /* Ajusta aqui o tamanho */
         .logo-area img { 
             max-width: 100%; 
@@ -65,15 +70,25 @@
             color: white; 
             text-align: center; 
         }
-        
+
         .card.devo { 
             background: var(--devo); 
+            cursor: pointer;
         }
-        
+
+        .card.devo:hover { 
+            background: rgb(100, 4, 4); 
+        }
+
         .card.receber { 
             background: var(--receber); 
+            cursor: pointer;
         }
-        
+
+        .card.receber:hover { 
+            background: rgb(3, 49, 3);
+        }
+
         .card span { 
             display: block; 
             font-size: 1.2rem; 
@@ -86,13 +101,18 @@
             border-radius: 8px; 
             margin-bottom: 20px; 
         }
-        
+
+        .section strong {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
         .grid-form { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
             gap: 10px; 
         }
-        
+
         input, select { 
             padding: 10px; 
             border: 1px solid #ccc; 
@@ -100,7 +120,7 @@
             width: 100%; 
             box-sizing: border-box; 
         }
-        
+
         button { 
             cursor: pointer; 
             border: none; 
@@ -108,7 +128,7 @@
             font-weight: bold; 
             transition: 0.3s; 
         }
-        
+
         .btn-add { 
             background: var(--primary); 
             color: white; 
@@ -116,23 +136,23 @@
             width: 100%; 
             margin-top: 10px; 
         }
-        
+
         .btn-pay { 
             background: #3498db; 
             color: white; 
             padding: 5px 10px; 
         }
-        
+
         .btn-del { 
             background: #c0392b; 
             color: white; 
             padding: 5px 10px; 
         }
-        
+
         .btn-export { 
             background: #666; 
             color: white; 
-            padding: 12px; 
+            padding: 16px; 
             width: 100%; 
             margin-top: 20px; 
         }
@@ -141,19 +161,19 @@
             overflow-x: auto; 
             margin-top: 10px; 
         }
-        
+
         table { 
             width: 100%; 
             border-collapse: collapse; 
             min-width: 700px; 
         }
-        
+
         th, td { 
             padding: 12px; 
             border-bottom: 1px solid #ddd; 
             text-align: left; 
         }
-        
+
         th { 
             background: #f8f8f8; 
         }
@@ -174,7 +194,7 @@
             color: #7f8c8d;
             border-top: 1px solid #eee;
         }
-        
+
         footer strong {
             color: var(--primary);
         }
@@ -197,6 +217,7 @@
                 font-size: 0.7rem;
             }
         }
+
     </style>
 </head>
 <body>
@@ -269,6 +290,7 @@
                 <tr>
                     <th>Status</th>
                     <th>Pessoa</th>
+                    <th>Motivo</th>
                     <th>Valor Pago</th>
                     <th>Data do Movimento</th>
                     <th>Ações</th>
@@ -404,29 +426,28 @@ function realizarPagamento(id) {
     let dataP = prompt("Data (AAAA-MM-DD):", new Date().toISOString().split('T')[0]);
     if(!dataP) return;
 
-    // Se pagou tudo (ou mais)
+    // Cria registo no histórico com o valor pago neste movimento
+    const registoHistorico = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        tipo: original.tipo,
+        pessoa: original.pessoa,
+        valor: valorPago, // apenas o valor pago neste movimento
+        data: dataP,
+        motivo: original.motivo,
+        concluido: true,
+        isParcela: valorPago < original.restante // é parcela se ainda ficou valor em falta
+    };
+
+    // Adiciona o movimento ao histórico
+    finance_db.push(registoHistorico);
+
+    // Se pagou tudo (ou mais): remove dos pendentes
     if(valorPago >= original.restante) {
-
-        const pagamento = {
-            id: Date.now() + Math.floor(Math.random() * 1000),
-            tipo: original.tipo,
-            pessoa: original.pessoa,
-            valor: original.valor,
-            data: dataP,
-            motivo: original.motivo,
-            concluido: true,
-            isParcela: false
-        };
-
-        // Move para lista de pagos
-        finance_db.push(pagamento);
-
-        // Remove da lista de pendentes
         finance_db.splice(index, 1);
-
     } else {
-        // Pagamento parcial (reduz apenas o restante)
+        // Pagamento parcial: atualiza o restante e o valor total visível nos pendentes
         original.restante -= valorPago;
+        original.valor = original.restante; // coluna "Total" passa a mostrar o valor em falta
     }
 
     salvarEDesenhar();
@@ -556,10 +577,11 @@ function atualizarInterface() {
 
             } else {
 
-                // REGISTROS PAGOS
+                // REGISTROS PAGOS (histórico) — inclui Motivo
                 tr.innerHTML = `
-                    <td>${item.tipo === 'devo' ? 'Paguei' : 'Pagaram-me'}</td>
-                    <td>${item.pessoa} ${item.isParcela ? '<span class="tag-parcela">Parcela</span>' : ''}</td>
+                    <td>${item.tipo === 'devo' ? 'Paguei' : 'Pagaram-me'} ${item.isParcela ? '<span class="tag-parcela">Parcela</span>' : ''}</td>
+                    <td>${item.pessoa}</td>
+                    <td>${item.motivo}</td>
                     <td>${formatarKz(item.valor)}</td>
                     <td>${dia}/${mes}/${ano}</td>
                     <td>
