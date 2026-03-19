@@ -4,221 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão Financeira KD</title>
-    <!-- <link rel="stylesheet" href="style.css"> -->
+    <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 
-    <style>
+    <!-- <style>
+    </style> -->
 
-        :root {
-        --primary: #4a90e2;
-        --devo: #e74c3c;
-        --receber: #2ecc71;
-        --bg: #f4f7f6;
-        }
-
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: var(--bg); 
-            margin: 0; 
-            padding: 15px; 
-        }
-
-        .container { 
-            max-width: 1000px; 
-            margin: auto; 
-            background: white; 
-            padding: 20px; 
-            border-radius: 12px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-        }
-
-        /* Estilo do Título com Logo */
-        .header-app { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 15px; 
-            margin-bottom: 20px; 
-        }
-
-        .logo-area { 
-            width: 50px; 
-            height: 50px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 40px; 
-        } 
-
-        /* Ajusta aqui o tamanho */
-        .logo-area img { 
-            max-width: 100%; 
-            height: auto; 
-            border-radius: 8px; 
-        }
-
-        .dashboard { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            margin: 20px 0; 
-        }
-
-        .card { 
-            padding: 15px; 
-            border-radius: 8px; 
-            color: white; 
-            text-align: center; 
-        }
-
-        .card.devo { 
-            background: var(--devo); 
-            cursor: pointer;
-        }
-
-        .card.devo:hover { 
-            background: rgb(100, 4, 4); 
-        }
-
-        .card.receber { 
-            background: var(--receber); 
-            cursor: pointer;
-        }
-
-        .card.receber:hover { 
-            background: rgb(3, 49, 3);
-        }
-
-        .card span { 
-            display: block; 
-            font-size: 1.2rem; 
-            font-weight: bold; 
-        }
-
-        .section { 
-            background: #eee; 
-            padding: 15px; 
-            border-radius: 8px; 
-            margin-bottom: 20px; 
-        }
-
-        .section strong {
-            display: inline-block;
-            margin-bottom: 15px;
-        }
-
-        .grid-form { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-            gap: 10px; 
-        }
-
-        input, select { 
-            padding: 10px; 
-            border: 1px solid #ccc; 
-            border-radius: 5px; 
-            width: 100%; 
-            box-sizing: border-box; 
-        }
-
-        button { 
-            cursor: pointer; 
-            border: none; 
-            border-radius: 5px; 
-            font-weight: bold; 
-            transition: 0.3s; 
-        }
-
-        .btn-add { 
-            background: var(--primary); 
-            color: white; 
-            padding: 12px; 
-            width: 100%; 
-            margin-top: 10px; 
-        }
-
-        .btn-pay { 
-            background: #3498db; 
-            color: white; 
-            padding: 5px 10px; 
-        }
-
-        .btn-del { 
-            background: #c0392b; 
-            color: white; 
-            padding: 5px 10px; 
-        }
-
-        .btn-export { 
-            background: #666; 
-            color: white; 
-            padding: 16px; 
-            width: 100%; 
-            margin-top: 20px; 
-        }
-
-        .table-wrap { 
-            overflow-x: auto; 
-            margin-top: 10px; 
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            min-width: 700px; 
-        }
-
-        th, td { 
-            padding: 12px; 
-            border-bottom: 1px solid #ddd; 
-            text-align: left; 
-        }
-
-        th { 
-            background: #f8f8f8; 
-        }
-
-        .tag-parcela { 
-            font-size: 0.7rem; 
-            background: #ddd; 
-            padding: 2px 5px; 
-            border-radius: 3px; 
-            margin-left: 5px; 
-        }
-
-        footer {
-            margin-top: 30px;
-            text-align: center;
-            padding: 20px;
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            border-top: 1px solid #eee;
-        }
-
-        footer strong {
-            color: var(--primary);
-        }
-
-        @media (max-width: 600px) {
-            .dashboard { 
-                grid-template-columns: 1fr; 
-            }
-
-            .grid-form { 
-                grid-template-columns: 1fr; 
-            }
-
-            .header-app { 
-                flex-direction: column; 
-                text-align: center; 
-            }
-
-            .btn-export {
-                font-size: 0.7rem;
-            }
-        }
-
-    </style>
 </head>
 <body>
 
@@ -231,7 +22,7 @@
     </header>
 
     <div class="section">
-        <strong>Relatório de:</strong>
+        <strong>Filtro Para Relatório:</strong>
         <div class="grid-form">
             <select id="filtroMes" onchange="atualizarInterface()">
                 <option value="todos">Ver Todos os Meses</option>
@@ -585,7 +376,7 @@ function atualizarInterface() {
                     <td>${formatarKz(item.valor)}</td>
                     <td>${dia}/${mes}/${ano}</td>
                     <td>
-                        <button class="btn-del" onclick="estornarPagamento(${item.id})">Estornar</button>
+                        <button class="btn-del estornar" onclick="estornarPagamento(${item.id})">Estornar</button>
                         <button class="btn-del" onclick="eliminarPagamento(${item.id})">Eliminar</button>
                     </td>`;
 

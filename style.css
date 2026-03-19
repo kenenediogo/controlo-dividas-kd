@@ -2,6 +2,7 @@
     --primary: #4a90e2;
     --devo: #e74c3c;
     --receber: #2ecc71;
+    --estornar: rgb(173, 173, 9);
     --bg: #f4f7f6;
 }
 
@@ -38,6 +39,7 @@ body {
     justify-content: center; 
     font-size: 40px; 
 } 
+
 /* Ajusta aqui o tamanho */
 .logo-area img { 
     max-width: 100%; 
@@ -185,6 +187,19 @@ footer {
 
 footer strong {
     color: var(--primary);
+}
+
+@media (max-width: 971px) {
+    .btn-del,
+    .btn-pay {
+        display: block;
+        width: 100%;
+        margin-bottom: 4px;
+    }
+
+    .estornar {
+        background-color: var(--primary);
+    }
 }
 
 @media (max-width: 600px) {
