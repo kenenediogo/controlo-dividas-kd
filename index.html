@@ -56,7 +56,7 @@
         <button class="btn-add" onclick="adicionarRegisto()">REGISTAR LANÇAMENTO</button>
     </div>
 
-    <h3>⏳ Pendentes</h3>
+    <h3>⏳ Pendentes (Pode fazer o pagamento parcelado)</h3>
     <div class="table-wrap">
         <table id="tabelaPendentes">
             <thead>
@@ -370,7 +370,7 @@ function atualizarInterface() {
 
                 // REGISTROS PAGOS (histórico) — inclui Motivo
                 tr.innerHTML = `
-                    <td>${item.tipo === 'devo' ? 'Paguei' : 'Pagaram-me'} ${item.isParcela ? '<span class="tag-parcela">Parcela</span>' : ''}</td>
+                    <td>${item.tipo === 'devo' ? 'Entreguei' : 'Recebi'} ${item.isParcela ? '<span class="tag-parcela">Parcela</span>' : ''}</td>
                     <td>${item.pessoa}</td>
                     <td>${item.motivo}</td>
                     <td>${formatarKz(item.valor)}</td>
