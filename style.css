@@ -86,7 +86,8 @@ body {
 }
 
 #tipo {
-    background-color: #fff;
+    background-color: #000;
+    color: #fff;
 }
 
 .section { 
@@ -99,6 +100,11 @@ body {
 .section strong {
     display: inline-block;
     margin-bottom: 15px;
+}
+
+#filtroMes {
+    background-color: #000;
+    color: #fff;
 }
 
 .grid-form { 
