@@ -85,6 +85,10 @@ body {
     font-weight: bold; 
 }
 
+#tipo {
+    background-color: #fff;
+}
+
 .section { 
     background: #eee; 
     padding: 15px; 
@@ -127,6 +131,10 @@ button {
     margin-top: 10px; 
 }
 
+.btn-add:hover {
+    background-color: #042448;
+}
+
 .btn-pay { 
     background: #3498db; 
     color: white; 
@@ -145,6 +153,10 @@ button {
     padding: 16px; 
     width: 100%; 
     margin-top: 20px; 
+}
+
+.btn-export:hover {
+    background-color: #2c2b2b;
 }
 
 .table-wrap { 
@@ -174,6 +186,7 @@ th {
     padding: 2px 5px; 
     border-radius: 3px; 
     margin-left: 5px; 
+    color: red;
 }
 
 footer {
