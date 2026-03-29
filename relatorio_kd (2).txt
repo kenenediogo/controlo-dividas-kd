@@ -1,7 +1,0 @@
-=== RELATÓRIO FINANCEIRO KD ===
-
-2026-03-14 | PAGO | Maninho | 20 000,00 AKZ | Motivo: portas
-2026-03-17 | DEVO | Yaya | 22 000,00 AKZ | Motivo: compra manteiga
-2026-03-17 | PAGO | Edilson | 30 000,00 AKZ | Motivo: Montagem da sanita
-2026-03-18 | PAGO | Olivias | 10 000,00 AKZ | Motivo: Curso Power BI
-2026-03-18 | PAGO | Olivias | 5 000,00 AKZ | Motivo: Curso Power BI

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Financeira KD</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+    <!-- <style>
+    </style> -->
+
+</head>
+<body>
+
+<div class="container">
+    <header class="header-app">
+        <div class="logo-area" id="logoContainer">
+            <img src="logo-kd.png" alt="Logo KD"> 
+        </div>
+        <h2 style="margin: 0;">Gestão de Dívidas</h2>
+    </header>
+
+    <div class="section">
+        <strong>Filtro Para Relatório:</strong>
+        <div class="grid-form">
+            <select id="filtroMes" onchange="atualizarInterface()">
+                <option value="todos">Ver Todos os Meses</option>
+                <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+                <option value="03" selected>Março</option><option value="04">Abril</option>
+                <option value="05">Maio</option><option value="06">Junho</option>
+                <option value="07">Julho</option><option value="08">Agosto</option>
+                <option value="09">Setembro</option><option value="10">Outubro</option>
+                <option value="11">Novembro</option><option value="12">Dezembro</option>
+            </select>
+            <input type="number" id="filtroAno" value="2026" onchange="atualizarInterface()">
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="card devo">Total a Pagar<span id="saldoDevo">0 AKZ</span></div>
+        <div class="card receber">Total a Receber<span id="saldoReceber">0 AKZ</span></div>
+    </div>
+
+    <div class="section">
+        <div class="grid-form">
+            <select id="tipo">
+                <option value="devo">Eu Devo</option>
+                <option value="receber">Devem-me</option>
+            </select>
+            <input type="text" id="pessoa" placeholder="Pessoa/Empresa">
+            <input type="number" id="valorTotal" placeholder="Valor (AKZ)">
+            <input type="text" id="motivo" placeholder="Motivo">
+            <input type="date" id="data">
+        </div>
+        <button class="btn-add" onclick="adicionarRegisto()">REGISTAR LANÇAMENTO</button>
+    </div>
+
+    <h3>⏳ Pendentes (Pode fazer o pagamento parcelado)</h3>
+    <div class="table-wrap">
+        <table id="tabelaPendentes">
+            <thead>
+                <tr>
+                    <th>Data Origem</th>
+                    <th>Status</th>
+                    <th>Pessoa</th>
+                    <th>Motivo</th>
+                    <th>Total</th>
+                    <th>Falta</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <h3>✅ Histórico</h3>
+    <div class="table-wrap">
+        <table id="tabelaPagas">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Pessoa</th>
+                    <th>Motivo</th>
+                    <th>Valor Pago</th>
+                    <th>Data do Movimento</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Botão exportar movido para cá -->
+    <button class="btn-export" onclick="exportarParaTXT()">📥 EXPORTAR RELATÓRIO (.TXT)</button>
+
+    <footer>
+        <p>&copy; 2026 <strong>kd.tech</strong>. Todos os direitos reservados.</p>
+    </footer>
+</div>
+
+<script>
+    // Carrega os dados do localStorage (ou inicia um array vazio se não existir)
+let finance_db = JSON.parse(localStorage.getItem('finance_kd_v4')) || [];
+
+// Define a data atual automaticamente no input de data
+document.getElementById('data').valueAsDate = new Date();
+
+// Define o filtro padrão (todos os meses)
+document.getElementById('filtroMes').value = "todos"; 
+
+// Define o ano atual no filtro
+document.getElementById('filtroAno').value = new Date().getFullYear();
+
+
+// =========================
+// ADICIONAR NOVO REGISTO
+// =========================
+function adicionarRegisto() {
+
+    // Cria o objeto com os dados do formulário
+    const item = {
+        id: Date.now(), // ID único baseado no timestamp
+        tipo: document.getElementById('tipo').value, // "devo" ou "devem-me"
+        pessoa: document.getElementById('pessoa').value,
+        valor: parseFloat(document.getElementById('valorTotal').value) || 0,
+        restante: parseFloat(document.getElementById('valorTotal').value) || 0, // valor ainda em dívida
+        data: document.getElementById('data').value,
+        motivo: document.getElementById('motivo').value,
+        concluido: false, // ainda não pago
+        isParcela: false // controle de parcelas (não usado ainda)
+    };
+
+    // Validação básica dos campos
+    if(!item.pessoa || item.valor <= 0 || !item.data) 
+        return alert("Preencha os campos!");
+
+    // Adiciona ao banco
+    finance_db.push(item);
+
+    // Salva e atualiza interface
+    salvarEDesenhar();
+
+    // Limpa os campos do formulário
+    limparCampos();
+}
+
+
+// =========================
+// ESTORNAR PAGAMENTO
+// =========================
+function estornarPagamento(id) {
+
+    // Encontra o item pelo ID
+    const index = finance_db.findIndex(i => i.id === id);
+    if(index === -1) return;
+
+    const item = finance_db[index];
+
+    // Confirmação do usuário
+    if (!confirm(`Tem certeza que deseja estornar o pagamento de ${item.pessoa}?`)) return;
+
+    // Cria novamente a dívida original
+    const dividaOriginal = {
+        id: Date.now() + Math.floor(Math.random() * 1000), // novo ID
+        tipo: item.tipo,
+        pessoa: item.pessoa,
+        valor: item.valor,
+        restante: item.valor, // volta ao valor total
+        data: item.data,
+        motivo: item.motivo,
+        concluido: false,
+        isParcela: false
+    };
+
+    // Adiciona a dívida de volta e remove o pagamento
+    finance_db.push(dividaOriginal);
+    finance_db.splice(index, 1);
+
+    salvarEDesenhar();
+}
+
+
+// =========================
+// ELIMINAR PAGAMENTO (PAGO)
+// =========================
+function eliminarPagamento(id) {
+    if(confirm("Deseja eliminar este registro permanentemente?")) {
+        finance_db = finance_db.filter(i => i.id !== id);
+        salvarEDesenhar();
+    }
+}
+
+
+// =========================
+// REALIZAR PAGAMENTO
+// =========================
+function realizarPagamento(id) {
+
+    // Busca o item original
+    const index = finance_db.findIndex(i => i.id === id);
+    if(index === -1) return;
+
+    const original = finance_db[index];
+    
+    // Solicita valor a pagar
+    let valorInput = prompt(`Valor a pagar/receber de ${original.pessoa}:\nFalta: ${original.restante.toFixed(2)} AKZ`);
+    if(valorInput === null || valorInput === "") return;
+    
+    let valorPago = parseFloat(valorInput);
+
+    // Validação
+    if(isNaN(valorPago) || valorPago <= 0) 
+        return alert("Valor inválido!");
+
+    // Solicita data do pagamento
+    let dataP = prompt("Data (AAAA-MM-DD):", new Date().toISOString().split('T')[0]);
+    if(!dataP) return;
+
+    // Cria registo no histórico com o valor pago neste movimento
+    const registoHistorico = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        tipo: original.tipo,
+        pessoa: original.pessoa,
+        valor: valorPago, // apenas o valor pago neste movimento
+        data: dataP,
+        motivo: original.motivo,
+        concluido: true,
+        isParcela: valorPago < original.restante // é parcela se ainda ficou valor em falta
+    };
+
+    // Adiciona o movimento ao histórico
+    finance_db.push(registoHistorico);
+
+    // Se pagou tudo (ou mais): remove dos pendentes
+    if(valorPago >= original.restante) {
+        finance_db.splice(index, 1);
+    } else {
+        // Pagamento parcial: atualiza o restante e o valor total visível nos pendentes
+        original.restante -= valorPago;
+        original.valor = original.restante; // coluna "Total" passa a mostrar o valor em falta
+    }
+
+    salvarEDesenhar();
+}
+
+
+// =========================
+// ELIMINAR (GENÉRICO)
+// =========================
+function eliminar(id) {
+    if(confirm("Deseja apagar?")) {
+        finance_db = finance_db.filter(i => i.id !== id);
+        salvarEDesenhar();
+    }
+}
+
+
+// =========================
+// SALVAR + ATUALIZAR UI
+// =========================
+function salvarEDesenhar() {
+
+    // Salva no localStorage
+    localStorage.setItem('finance_kd_v4', JSON.stringify(finance_db));
+
+    // Atualiza a interface
+    atualizarInterface();
+}
+
+
+// =========================
+// LIMPAR CAMPOS DO FORM
+// =========================
+function limparCampos() {
+    document.getElementById('pessoa').value = '';
+    document.getElementById('valorTotal').value = '';
+    document.getElementById('motivo').value = '';
+}
+
+
+// =========================
+// FORMATAR MOEDA (Kwanza)
+// =========================
+function formatarKz(n) {
+    return n.toLocaleString('pt-AO', { minimumFractionDigits: 2 }) + " AKZ";
+}
+
+
+// =========================
+// EXPORTAR PARA TXT
+// =========================
+function exportarParaTXT() {
+
+    if (finance_db.length === 0) return alert("Sem dados!");
+
+    let t = "=== RELATÓRIO FINANCEIRO KD ===\n\n";
+
+    // Ordena por data
+    const todos = [...finance_db];
+    todos.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+    // Monta o conteúdo do arquivo
+    todos.forEach(i => {
+        let tipoExport = i.concluido ? "PAGO" : (i.tipo === "devo" ? "DEVO" : "DEVEM-ME");
+
+        t += `${i.data} | ${tipoExport} | ${i.pessoa} | ${formatarKz(i.valor)} | Motivo: ${i.motivo}\n`;
+    });
+
+    // Cria e baixa o arquivo
+    const blob = new Blob([t], { type: "text/plain" });
+    const a = document.createElement("a");
+
+    a.href = URL.createObjectURL(blob);
+    a.download = "relatorio_kd.txt";
+    a.click();
+}
+
+
+// =========================
+// ATUALIZAR INTERFACE
+// =========================
+function atualizarInterface() {
+
+    const mesF = document.getElementById('filtroMes').value;
+    const anoF = document.getElementById('filtroAno').value;
+
+    const tPendentes = document.querySelector('#tabelaPendentes tbody');
+    const tPagas = document.querySelector('#tabelaPagas tbody');
+    
+    // Limpa tabelas
+    tPendentes.innerHTML = '';
+    tPagas.innerHTML = '';
+
+    let totalDevo = 0, totalReceber = 0;
+
+    // Percorre todos os registros
+    finance_db.forEach(item => {
+
+        const [ano, mes, dia] = item.data.split('-');
+
+        // Filtra por mês/ano
+        if (mesF === "todos" || (mes === mesF && ano === String(anoF))) {
+
+            const tr = document.createElement('tr');
+
+            // REGISTROS PENDENTES
+            if(!item.concluido) {
+
+                if(item.tipo === 'devo') 
+                    totalDevo += item.restante; 
+                else 
+                    totalReceber += item.restante;
+
+                tr.innerHTML = `
+                    <td>${dia}/${mes}/${ano}</td>
+                    <td>${item.tipo === 'devo' ? 'Devo' : 'Devem-me'}</td>
+                    <td>${item.pessoa}</td>
+                    <td>${item.motivo}</td>
+                    <td>${formatarKz(item.valor)}</td>
+                    <td style="color:red;font-weight:bold">${formatarKz(item.restante)}</td>
+                    <td>
+                        <button class="btn-pay" onclick="realizarPagamento(${item.id})">Pagar</button>
+                        <button class="btn-del" onclick="eliminar(${item.id})">×</button>
+                    </td>`;
+
+                tPendentes.appendChild(tr);
+
+            } else {
+
+                // REGISTROS PAGOS (histórico) — inclui Motivo
+                tr.innerHTML = `
+                    <td>${item.tipo === 'devo' ? 'Entreguei' : 'Recebi'} ${item.isParcela ? '<span class="tag-parcela">Parcela</span>' : ''}</td>
+                    <td>${item.pessoa}</td>
+                    <td>${item.motivo}</td>
+                    <td>${formatarKz(item.valor)}</td>
+                    <td>${dia}/${mes}/${ano}</td>
+                    <td>
+                        <button class="btn-del estornar" onclick="estornarPagamento(${item.id})">Estornar</button>
+                        <button class="btn-del" onclick="eliminarPagamento(${item.id})">Eliminar</button>
+                    </td>`;
+
+                tPagas.appendChild(tr);
+            }
+        }
+    });
+
+    // Atualiza totais
+    document.getElementById('saldoDevo').innerText = formatarKz(totalDevo);
+    document.getElementById('saldoReceber').innerText = formatarKz(totalReceber);
+}
+
+
+// Inicializa a interface ao carregar
+atualizarInterface();
+</script>
+</body>
+</html>

@@ -90,10 +90,6 @@ body {
     color: #fff;
 }
 
-#data {
-    background-color: #fff;
-}
-
 .section { 
     background: #eee; 
     padding: 15px; 
@@ -187,8 +183,7 @@ th, td {
 }
 
 th { 
-    background: #000000; 
-    color: #fff;
+    background: #f8f8f8; 
 }
 
 .tag-parcela { 
@@ -198,12 +193,6 @@ th {
     border-radius: 3px; 
     margin-left: 5px; 
     color: red;
-}
-
-
-#tabelaPendentes tbody tr:nth-child(even),
-#tabelaPagas tbody tr:nth-child(even) {
-    background-color: #dfdddd;
 }
 
 footer {
